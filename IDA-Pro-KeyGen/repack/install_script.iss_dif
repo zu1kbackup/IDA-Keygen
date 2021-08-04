@@ -1,0 +1,43 @@
+=================================================
+-OutputBaseFilename=IDA_Pro_6.5_xxxxxxxxxxxx_Setup
++OutputBaseFilename=IDA_Pro_6.5
+ Compression=zip
+-; Encryption=yes
+-; PasswordHash=
+-; PasswordSalt=
+ DisableProgramGroupPage=yes
+ ChangesAssociations=yes
+ AllowNoIcons=yes
+-LicenseFile=embedded\License.txt
++DisableWelcomePage=no
+ WizardImageFile=embedded\WizardImage0.bmp
+ WizardSmallImageFile=embedded\WizardSmallImage0.bmp
+=================================================
+-Source: "{tmp}\win_fw.dll"; DestDir: "{tmp}"; MinVersion: 0.0,5.0; Flags: deleteafterinstall dontcopy
+=================================================
+
++[Code]
++var
++  InstPy: Boolean;
++  ErrorCode: Integer;
++procedure CurStepChanged(CurStep: TSetupStep);
++begin
++  if (CurStep = ssPostInstall) then
++    begin
++      InstPy := MsgBox( 'Python 2.7 is required for some scripts and loaders included with IDA. It is recommended to install it.',
++	 mbConfirmation, MB_YESNO) = idYes;
++      if (InstPy = True) then
++	begin
++	  ExtractTemporaryFile('python-2.7.2.msi');
++	  if not ShellExec('', ExpandConstant('{tmp}\python-2.7.2.msi'), '', '',
++			   SW_SHOWNORMAL, ewWaitUntilTerminated, ErrorCode) then
++	  begin
++	    MsgBox( 'Could not install Python. Python scripting will not work.',
++		    mbInformation, MB_OK);
++	  end;
++	end;
++    end;
++end;
+
+ [Run]
+=================================================
