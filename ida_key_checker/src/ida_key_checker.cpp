@@ -38,6 +38,9 @@ enum EFileType
 	EFileType_Unknown = -1,
 	EFileType_KEY = 0,
 	EFileType_IDB,
+	EFileType_PE,
+	EFileType_ELF,
+	EFileType_DYLIB,
 	EFileType_BIN
 };
 
@@ -337,6 +340,51 @@ int check_signature(path bin_file, path decrypted_file = "")
 	return 0;
 }
 
+int check_hexrays_plugin(path bin_file, path bin_license = "")
+{
+	string version;
+	string ver;
+	rays_license_t license;
+	auto result = get_hexrays_license(bin_file, version, license);
+
+	if (result != ELicenseState_Ok && result != ELicenseState_Corrupted)
+	{
+		switch (result)
+		{
+		case ida::ELicenseState_AccessError:
+			cout << "Access error to file: " << bin_file << endl;
+			break;
+		case ida::ELicenseState_NotFound:
+			cout << "License block not found." << endl;
+			break;
+		default:
+			break;
+		}
+		return 2;
+	}
+	ver = version;
+	version.insert(version.begin() + 15, ' ');
+	cout << version << (result == ELicenseState_Corrupted ? "\t(Corrupted)" : "") << endl << endl;
+	print_rays_license(license);
+
+	if (!bin_license.empty())
+	{
+		ver.resize(sizeof(rays_signature_t));
+		vector<uint8_t> block;
+		block.insert(block.begin(), ver.cbegin(), ver.cend());
+		block.insert(block.end(),
+			reinterpret_cast<uint8_t*>(&license),
+			reinterpret_cast<uint8_t*>(&license) + sizeof(rays_license_t));
+
+		cout << endl << "Save HexRays license block to: " << bin_license << endl;
+		if (!write_file(bin_license, block.data(), block.size()))
+			cout << "Error: access fail" << endl;
+		else
+			cout << "License block saved" << endl;
+	}
+	return 0;
+}
+
 int check_file_type(path filepath)
 {
 	const auto magic_size = 19;
@@ -363,13 +411,22 @@ int check_file_type(path filepath)
 			magic.find("IDA2") == 0)
 			return EFileType_IDB;
 
+		if (magic.find("MZ") == 0)
+			return EFileType_PE;
+
+		if (magic.find("ELF") == 1)
+			return EFileType_ELF;
+
+		if (magic.find("\xCF\xFA\xED\xFE") == 0)
+			return EFileType_DYLIB;
+
 		if (size == 128 || size == 160)
 			return EFileType_BIN;
 	}
 	return EFileType_Unknown;
 }
 
-int ckeck_key(path in_file, path out_file = "")
+int check_key(path in_file, path out_file = "")
 {
 	if (!exists(in_file))
 	{
@@ -388,6 +445,11 @@ int ckeck_key(path in_file, path out_file = "")
 		break;
 	case EFileType_BIN:
 		result = check_signature(in_file, out_file);
+		break;
+	case EFileType_PE:
+	case EFileType_ELF:
+	case EFileType_DYLIB:
+		result = check_hexrays_plugin(in_file, out_file);
 		break;
 	default:
 		cout << "Unknown file type: " << in_file << endl;
@@ -434,6 +496,6 @@ int main(int argc, char* argv[])
 
 	if (result.count("output")) output = file_path(result["output"].as<std::string>());
 
-	return ckeck_key(input, output);
+	return check_key(input, output);
 }
 
