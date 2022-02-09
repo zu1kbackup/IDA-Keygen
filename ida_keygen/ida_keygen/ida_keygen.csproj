@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <PublishTrimmed>true</PublishTrimmed>
+    <TrimmerDefaultAction>link</TrimmerDefaultAction>
+    <TrimmerSingleWarn>false</TrimmerSingleWarn>
+    <!--<IlcDisableReflection>true</IlcDisableReflection>-->
+    <IlcTrimMetadata>true</IlcTrimMetadata>
+    <!--<IlcGenerateCompleteTypeMetadata>true</IlcGenerateCompleteTypeMetadata>-->
+    <IlcOptimizationPreference>Size</IlcOptimizationPreference>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="4.0.1" />
+    <PackageReference Include="Microsoft.DotNet.ILCompiler" Version="7.0.0-preview.2.22102.2" />
+  </ItemGroup>
+
+</Project>
