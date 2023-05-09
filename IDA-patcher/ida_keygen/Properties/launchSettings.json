@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "ida_keygen": {
+      "commandName": "Project",
+      "commandLineArgs": "-u user -e 123@456 -t floating"
+    }
+  }
+}
